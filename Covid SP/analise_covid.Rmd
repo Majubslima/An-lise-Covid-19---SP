@@ -1,0 +1,329 @@
+---
+title: "ME115 - Linguagem R"
+subtitle: "Turma A - Profa. Tatiana Benaglia"
+author: "Exame - 20/07/2021 - 2021S1"
+date: "NOME: Maria Júlia de Lima Silva       RA:184181" 
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE,
+                      fig.height = 3.5, fig.width = 6)
+```
+
+## Instruções
+
+* Edite o cabeçalho do arquivo Rmd colocando seu nome e RA. 
+* Lembre-se de alterar a opção `eval = FALSE` no primeiro chunk para que os chunks subsequentes sejam avaliados.
+* Use caminhos relativos para que eu possa executar o seu código no meu computador sem erros e sem ter que editá-lo.
+* Para todos os problemas abaixo, escreva o código para responder cada uma das questões. 
+
+
+### Parte 1
+
+Carregue o conjunto de dados `PlantGrowth` disponível no R. Esses dados são resultados de um experimento para comparar o peso (`weight`) de plantas secas obtidas sobre três condições diferentes representada na variável `group`. Veja que temos o grupo controle (`ctrl`) e dois tratamentos (`trt1` e `trt2`).
+
+```{r}
+
+data("PlantGrowth")
+
+
+```
+
+
+1.1) **[1.0 ponto]** Considerando a variável resposta `weight`, faça o seguinte:
+
+(a) calcule as medianas do peso por grupo.
+
+
+```{r}
+library(tidyverse)
+PlantGrowth %>% group_by(group) %>% summarise(mediana = median(weight))
+
+
+
+summary(PlantGrowth)
+
+```
+
+
+(b) um boxplot do peso por grupo. As cores das caixas devem mudar de acordo com o tratamento e a legenda deve ser removida.
+
+
+```{r}
+
+library(tidyverse)
+
+meu_tema = theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5, size = 13),
+          axis.title = element_text(hjust = 0.5, size = 11),
+          axis.text = element_text(size = 10))
+PlantGrowth %>% ggplot(aes(x = group, y = weight, fill = group)) + geom_boxplot(show.legend = FALSE, fill = c("tomato", "tomato3", "tomato4")) + meu_tema + labs(title = "Boxplot do peso por grupo", y = "Peso", x = "Grupo")
+
+
+```
+
+
+
+1.2) **[1.0 ponto]** Escreva uma função chamada `min.max()` que recebe como argumento obrigatório um vetor `x` e retorna um vetor contendo os valores mínimo e máximo de `x`. Essa função deverá ter como argumento opcional `na.rm` com default `TRUE`. **Nota:** não é permitido usar a função `range()`. 
+
+Veja um exemplo abaixo do que a função `min.max()` deve retornar:
+
+```{r, eval=FALSE}
+x <- c(5, 2, 1, 7, 3, NA, 4, 2)
+    
+min.max(x)
+[1] 1 7
+
+
+min.max <- function(x){
+ minimo <-  min(x, na.rm = TRUE)
+ maximo <- max(x, na.rm = TRUE)
+
+ lista <- as.vector(c(minimo, maximo))
+ return(lista)
+ 
+}
+
+min.max(x)
+
+```
+
+1.3) **[1.0 ponto]** Usando os dados `PlantGrowth`, qual é o peso mínimo e máximo das plantas dentro de cada grupo? Você pode usar sua função `min.max()` para isso.
+
+```{r}
+#g1 <-  PlantGrowth %>% filter(group == "trt1")
+
+#min.max(g1$weight) #grupo trt1
+
+#g2 <-  PlantGrowth %>% filter(group == "ctrl")
+
+#min.max(g1$weight) #grupo ctrl
+
+
+#g3 <-  PlantGrowth %>% filter(group == "trt2")
+
+#min.max(g1$weight) #grupo trt2
+
+
+```
+
+
+
+## Parte 2
+
+Carregue o conjunto de dados `iris` disponível no R.
+
+```{r}
+library(dslabs)
+data(iris)
+iris
+
+```
+
+
+2.1) **[1.0 ponto]** Considerando apenas as pétalas das plantas (`Petal`), faça um gráfico de dispersão entre o comprimento (`length`) e a largura (`width`). Os pontos devem ser coloridos de acordo com a espécie. 
+
+```{r}
+
+
+petalas <- iris %>% select(Petal.Length, Petal.Width, Species) %>% 
+  ggplot(aes(y = Petal.Length, x = Petal.Width, colour = Species)) + geom_point(pch = 18, cex = 5)  +
+  labs(title = "Relação entre o comprimento e a larguras das pétalas de acordo com a espécie", y = "Comprimento da pétala", x = "Largura da pétala") + 
+  meu_tema
+petalas
+
+```
+
+
+
+**Responda:** Se um biólogo medisse a pétala de uma planta íris e obtivesse comprimento de 1cm e largura de 0.5cm. Você classificaria essa planta como sendo de que espécie? Justifique a sua escolha para o biólogo, baseando-se nos dados.
+
+Eu classificaria essa planta íris como sendo da espécie setosa, pois, diferente das outras espécies a setosa se encontra com comprimento menor que 2cm e largura menor que 1 em suas pétalas, e como todas as espécies nessa área são setosas, então, eu classifico essa planta como uma setosa.
+
+
+
+2.2) **[1.0 ponto]** Calcule as médias das colunas numéricas usando:
+
+(a) alguma função da família `apply`; 
+
+```{r}
+nume <- iris %>% select(-(Species))
+
+apply(nume, 2, mean)
+
+
+```
+
+
+(b) o verbo `summarise()`do pacote `dplyr`.
+
+```{r}
+iris %>% summarise(Sepal.Length = mean(Sepal.Length), Sepal.Width = mean(Sepal.Width), Petal.Length = mean(Petal.Length), Petal.Width = mean(Petal.Width))
+
+```
+
+    
+
+### Parte 3
+
+Nessa parte você irá trabalhar com o dados de COVID mantidos pela SEADE (https://www.seade.gov.br/coronavirus/). Essa é uma versão compilada, contendo informações sobre casos e óbitos por data e municípios do Estato de São Paulo até a data de ontem (19/07/2020). Os dados estão salvos em um  arquivo de nome **covidSP.csv**, disponível no link: 
+
+https://drive.google.com/file/d/1dA5fnT8SLNjmfFjwjY5-9ZEzAtGN9_b6/view?usp=sharing
+
+Salve-o com esse mesmo nome no seu diretório de trabalho, ou seja, no mesmo diretório onde você salvou o Rmd do enunciado do exame. 
+
+O conjunto de dados possui as seguintes variáveis, mantidas com os mesmos nomes dos dados originais:
+
+* `nome_munic`: Nome do município
+* `datahora`:	Data no formato YYYY-MM-DD
+* `casos_novos`: Casos novos registrados na data
+* `obitos_novos`:	Óbitos novos registrados na data
+* `nome_drs`: Nome do Departamento Regional de Saúde (DRS)
+* `pop`: População Estimada (fonte: SEADE)
+
+
+**Leitura dos Dados**: Leia os dados e salve-o num objeto chamado `covid`, usando uma função que retorne um *tibble*. Verifique se os tipos das colunas estão corretos e modifique-os caso seja necessário. 
+
+```{r}
+
+library(readr)
+setwd("../Exame/")
+
+covid <- read_csv("covidSP.csv")
+
+str(covid)
+View(covid)
+
+```
+
+
+Para cada um dos problemas abaixo, use os verbos do pacote `dplyr` para manipulação de dados e o pacote `ggplot2` para os gráficos. 
+
+3.1) **[1.0 ponto]** Quantos municípios distintos existem:
+
+(a) no Estado de São Paulo? Exclua o caso do município chamado de "Ignorado".
+
+```{r}
+covid %>% select(nome_munic) %>% filter(nome_munic != "Ignorado") %>% summarise(unique(nome_munic)) %>% summarise(Total = n())
+
+```
+
+
+(b) dentro de cada Departamentos Regionais de Saúde (DRS)?
+
+```{r}
+covid %>% select(nome_munic, nome_drs) %>% filter(nome_munic != "Ignorado") %>% group_by(nome_drs) %>% summarise(unique(nome_munic)) %>% summarise(Total = n())
+```
+
+
+
+3.2) **[1.0 ponto]** Faça um gráfico de barras horizontais ordenado pela proporção de municípios em cada DRS, ou seja, no eixo y teremos as DRS e no eixo x a proporção de municípios naquele DRS. Apresente no gráfico apenas os 10 maiores DRS.
+
+```{r}
+
+
+covid %>% select(nome_munic, nome_drs) %>% 
+  filter(nome_munic != "Ignorado") %>% group_by(nome_drs) %>%
+  summarise(unique(nome_munic)) %>% summarise(Total = n()) %>% 
+  slice_max(Total, n = 10) %>% mutate(total = Total/sum(Total)) %>% 
+  ggplot(aes(x = total, y = nome_drs, fill = Total)) +
+  geom_bar(stat = "Identity") +  meu_tema + 
+  labs(title = "As 10 maiores DRS", y = "DRS", x = "Proporção de munícios")
+
+
+```
+
+
+
+
+3.3) **[1.5 ponto]** Selecione um município do Estado de São Paulo que tenha pelo menos 400 mil habitantes. Para esse município, crie gráficos apropriados para os seguintes variáveis. Em ambos os casos, o eixo x deve representar a data (`datahora`):
+
+
+```{r}
+municipio <- covid %>% filter(pop > 400000) %>% 
+  group_by(nome_munic) %>% 
+  slice_max(pop, n = 5) %>% summarise(unique(nome_munic))
+municipio #escolhendo o munícipio de Osasco
+
+
+municipio <- covid %>% select(datahora, nome_munic, pop, casos_novos) %>% 
+  filter(pop > 400000, nome_munic == "Osasco")  
+
+```
+
+
+(a) **[0.5 ponto]** casos novos ao longo do tempo;
+
+```{r}
+library(lubridate)
+
+municipio %>% mutate(data = ymd(datahora)) %>% 
+  ggplot(aes(x = data, y = casos_novos)) + geom_point(color="tomato3") + geom_line(color="tomato4") + 
+  labs(title = "Casos novos ao longo do tempo no munícipio de Osasco", x = "Data", y = "Casos novos") + meu_tema
+
+
+```
+
+
+
+(b) **[1.0 ponto]** casos novos acumulados ao longo do tempo.
+
+```{r}
+
+
+
+
+municipio %>% 
+  mutate(casos_acumulados = cumsum(casos_novos), data = ymd(datahora)) %>%
+  ungroup() %>% 
+  ggplot(aes(x = data, y = casos_acumulados)) + geom_point(color="tomato3")  +
+  labs(title = "Casos acumulados ao longo do tempo no munícipio de Osasco", x = "Data", y = "Casos acumulados") + meu_tema
+
+
+
+```
+
+
+
+3.4) Considerando o **Estado de São Paulo** como um todo:
+
+(a) **[0.5 ponto]** calcule o número de casos e óbitos novos registrados por dia no estado, ou seja, desde 25/02/2020 até 19/07/2021.
+
+```{r}
+
+covid %>% group_by(casos_novos, obitos_novos) %>% summarise(data = unique(datahora)) %>% arrange((data))
+
+
+```
+
+
+
+
+(b) **[0.5 ponto]** calcule a média móvel do número de casos novos dos últimos 7 dias. Dica: função `rollmean()` do pacote `zoo` e cheque os argumentos `k`, `na.pad` e `align`.
+
+```{r}
+library(zoo)
+casoss <- covid %>% group_by(casos_novos, obitos_novos) %>% summarise(data = unique(datahora)) %>% arrange((data))
+
+rollmean(casoss$casos_novos, k = 7,na.pad = FALSE, align = c ("center", "left", "right"))
+
+```
+
+
+(c) **[1.0 ponto]** faça um gráfico de barras com o número de casos novos por dia para o estado de SP. Adicione a esse gráfico uma linha vermelha que representa a média móvel dos últimos 7 dias ao longo do tempo.
+
+
+```{r}
+  
+casoss %>% ggplot(aes(y = casos_novos, x = data)) + geom_bar(stat = "identity", fill = "tomato3") +
+  meu_tema + labs(title = "Casos novos por dia em SP", y = "Casos novos", x = "Data") + geom_line(col = "tomato4")
+  
+  
+
+```
+
+
